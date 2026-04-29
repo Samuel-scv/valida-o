@@ -1,0 +1,36 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../generated/prisma"
+}
+
+datasource db {
+  provider = "mysql"
+}
+
+model user{
+  id          Int      @id @default(autoincrement())
+  nome        String   @db.VarChar(60)
+  email       String   @unique
+  senha       String   @db.VarChar(60)
+  tipo        Tipo     @default(recepcionista)
+}
+
+model convidados{
+  id          Int      @id @default(autoincrement())
+  nome        String   @db.VarChar(60)
+  sobrenome   String   @db.VarChar(60)
+  cpf         String   @unique
+  telefone    String   @db.VarChar(60)
+  email       String   @unique
+  status      Status   @default(Indefinido)
+}
+
+enum Tipo {
+  recepcionista
+  admin
+}
+
+enum Status {
+  confirmado
+  Indefinido
+}
