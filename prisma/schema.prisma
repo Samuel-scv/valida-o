@@ -12,7 +12,7 @@ model user{
   nome        String   @db.VarChar(60)
   email       String   @unique
   senha       String   @db.VarChar(60)
-  tipo        Tipo     @default(recepcionista)
+  tipo        Tipo     
 }
 
 model convidados{

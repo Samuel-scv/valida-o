@@ -9,6 +9,7 @@ export async function Criar(req: Request, res: Response) {
 
     if (!nome || !sobrenome || !cpf || !telefone || !email) {
         res.status(400).json({ error: "todos os dados são obrigatorios" })
+        return
     }
 
     try {
@@ -66,13 +67,15 @@ export async function Editar(req: Request, res: Response) {
     const { nome, sobrenome, cpf, telefone, email} = req.body
     if (!nome || !sobrenome || !cpf || !telefone || !email) {
        res.status(400).json({ error: "todos os dados são obrigatorios" })
+       return
     }
 
     const convidado = await prisma.convidados.findFirst({
         where: { id: +id }
     })
     if (!convidado) {
-        res.status(400).json("convidado não encontrado")
+        res.status(400).json({ error: "convidado não encontrado" })
+        return
     }
 
     try{
@@ -100,14 +103,15 @@ export async function Deletar(req: Request, res: Response) {
         }
     })
     if (!convidado) {
-        res.status(400).json("convidado não encontrado")
+        res.status(400).json({ error: "convidado não encontrado" })
+        return
     }
 
     try {
         await prisma.convidados.delete({
             where: { id: +id }
         })
-        res.status(400).json(`convidado deletado ${id}`)
+        res.status(200).json({ message: `convidado deletado ${id}` })
     } catch {
         res.status(400).json({ error: "erro ao deletar usuario" })
     }

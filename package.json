@@ -8,7 +8,7 @@
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "dev": "npx tsc watch src/server"
+    "dev": "npx tsx watch src/server"
   },
   "dependencies": {
     "@prisma/adapter-mariadb": "^7.8.0",
@@ -16,10 +16,12 @@
     "@types/express": "^5.0.6",
     "dotenv": "^17.4.2",
     "express": "^5.2.1",
+    "jsonwebtoken": "^9.0.3",
     "tsx": "^4.21.0",
     "typescript": "^6.0.3"
   },
   "devDependencies": {
+    "@types/jsonwebtoken": "^9.0.10",
     "@types/node": "^25.6.0",
     "prisma": "^7.8.0"
   }
