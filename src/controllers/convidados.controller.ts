@@ -22,6 +22,7 @@ export async function Criar(req:Request, res:Response) {
 }
 
 
+
 export async function Listagem(req: Request, res: Response) {
     try {
         const list = await prisma.convidados.findMany({
@@ -37,6 +38,7 @@ export async function Listagem(req: Request, res: Response) {
         res.status(400).json({ error: "nenhum convidado encontrado" })
     }
 }
+
 
 
 export async function Busca(req: Request, res: Response) {
@@ -55,6 +57,7 @@ export async function Busca(req: Request, res: Response) {
         res.status(400).json({ error: "convidado não encontrado" })
     }
 }
+
 
 
 export async function Editar(req: Request, res: Response) {
@@ -84,6 +87,39 @@ export async function Editar(req: Request, res: Response) {
         res.status(400).json({ erro: "Erro ao atualizar"  });
     }
 }
+
+
+
+export async function MudarTipo(req: Request, res: Response) {
+    const { id } = req.params
+    if (!id) {
+        res.status(400).json({ error: "insira todos os dados" })
+        return
+    }
+
+    const { status } = req.body
+    if (!status) {
+        res.status(400).json({ error: "insira todos os dados" })
+        return
+    }
+
+    const user = await prisma.user.findUnique({ where: { id: Number(id) } })
+    if (!user) {
+        res.status(400).json({ error: "Usuario não encontrado" })
+        return
+    }
+
+    try {
+        const editado = await prisma.convidados.update({
+            where: { id: +id },
+            data: { status }
+        })
+        res.status(200).json(editado)
+    } catch (error) {
+        res.status(400).json({ erro: "Erro ao atualizar" });
+    }
+}
+
 
 
 export async function Deletar(req: Request, res: Response) {
