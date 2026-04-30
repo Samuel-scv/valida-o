@@ -34,7 +34,19 @@ export async function login(req: Request, res: Response) {
 
     const user = await prisma.convidados.findUnique({where:{email}})
 
-    if(!user)
+    if(!user || (user.senha !== senha)){
+        res.status(400).json({error:"email e senha são obrigatorios"})
+    }
+
+    const token = jwt.sing(
+    {
+        userId:user.id
+        role:user.role
+    },
+    "algo",
+    {expiresIn:"1h"}
+)
+res.json({token})
     
     
 }
