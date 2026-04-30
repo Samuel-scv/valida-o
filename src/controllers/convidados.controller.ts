@@ -3,7 +3,7 @@ import { prisma } from "../../lib/prisma.js"
 import { Convidado } from '../interface/convidado.interface.js'
 
 
-export async function Criar(req: Request, res: Response) {
+export async function Criar(req:Request, res:Response) {
     const { nome, sobrenome, cpf, telefone, email }: Convidado = req.body
     console.log(req.body)
 
@@ -17,8 +17,8 @@ export async function Criar(req: Request, res: Response) {
             data: { nome, sobrenome, cpf, telefone, email },
             select: { id: true, nome: true, sobrenome: true }
         })
-        res.status(200).json(convidado)
-    } catch { res.status(400).json({ error: "erro ao criar convidado" }) }
+        return res.status(200).json(convidado)
+    } catch (error) { return res.status(400).json({ error: "erro ao criar convidado" }) }
 }
 
 
@@ -42,7 +42,7 @@ export async function Listagem(req: Request, res: Response) {
 export async function Busca(req: Request, res: Response) {
     const { id } = req.params
     if (!id) {
-        res.status(400).json({ error: "insira todos os dados" })
+        res.status(400).json({ error: "ID do convidado não fornecido" })
         return
     }
 
@@ -65,10 +65,6 @@ export async function Editar(req: Request, res: Response) {
     }
 
     const { nome, sobrenome, cpf, telefone, email} = req.body
-    if (!nome || !sobrenome || !cpf || !telefone || !email) {
-       res.status(400).json({ error: "todos os dados são obrigatorios" })
-       return
-    }
 
     const convidado = await prisma.convidados.findFirst({
         where: { id: +id }
@@ -93,7 +89,7 @@ export async function Editar(req: Request, res: Response) {
 export async function Deletar(req: Request, res: Response) {
     const { id } = req.params
     if (!id) {
-        res.status(400).json({ error: "insira todos os dados" })
+        res.status(400).json({ error: "convidado não encontrado" })
         return
     }
 
