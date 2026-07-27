@@ -5,11 +5,14 @@ import { AdminMiddleware } from "../middlewares/authAdmin.middlewares.js"
 
 const router = Router()
 
-router.post("/CriarConvidado", Authmiddleware, AdminMiddleware, Criar)
-router.get("/convidados", Authmiddleware, Listagem)
-router.get("/convidado/:id", Authmiddleware, Busca)
-router.patch("/convidado/:id", Authmiddleware, AdminMiddleware, Editar)
-router.patch("/convidado/tipo/:id", Authmiddleware, MudarTipo)
-router.delete("/convidado/:id", Authmiddleware, AdminMiddleware, Deletar)
+// Admin e Recepcionista podem cadastrar/visualizar/editar/check-in
+router.post("/", Authmiddleware, Criar)
+router.get("/", Authmiddleware, Listagem)
+router.get("/:id", Authmiddleware, Busca)
+router.put("/:id", Authmiddleware, Editar)
+router.patch("/:id/checkin", Authmiddleware, MudarTipo)
+
+// Só Admin pode excluir convidados
+router.delete("/:id", Authmiddleware, AdminMiddleware, Deletar)
 
 export default router

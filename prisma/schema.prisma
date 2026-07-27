@@ -12,7 +12,8 @@ model user{
   nome        String   @db.VarChar(60)
   email       String   @unique
   senha       String   @db.VarChar(60)
-  tipo        Tipo     
+  tipo        Tipo
+  convidadosCriados convidados[]
 }
 
 model convidados{
@@ -23,6 +24,8 @@ model convidados{
   telefone    String   @db.VarChar(60)
   email       String   @unique
   status      Status   @default(Indefinido)
+  criadoPor   Int      @map("criado_por")
+  criador     user     @relation(fields: [criadoPor], references: [id])
 }
 
 enum Tipo {

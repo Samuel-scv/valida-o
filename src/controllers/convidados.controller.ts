@@ -1,11 +1,10 @@
-import { Request, Response } from 'express'
+import { Response } from 'express'
 import { prisma } from "../../lib/prisma.js"
 import { Convidado } from '../interface/convidado.interface.js'
+import { AuthRequest } from '../middlewares/auth.middlewares.js'
 
-
-export async function Criar(req:Request, res:Response) {
+export async function Criar(req: AuthRequest, res: Response) {
     const { nome, sobrenome, cpf, telefone, email }: Convidado = req.body
-    console.log(req.body)
 
     if (!nome || !sobrenome || !cpf || !telefone || !email) {
         res.status(400).json({ error: "todos os dados são obrigatorios" })
@@ -14,22 +13,31 @@ export async function Criar(req:Request, res:Response) {
 
     try {
         const convidado = await prisma.convidados.create({
-            data: { nome, sobrenome, cpf, telefone, email },
+            data: {
+                nome, sobrenome, cpf, telefone, email,
+                criadoPor: req.userId! // registra quem cadastrou o convidado
+            },
             select: { id: true, nome: true, sobrenome: true }
         })
-        return res.status(200).json(convidado)
-    } catch (error) { return res.status(400).json({ error: "erro ao criar convidado" }) }
+        res.status(201).json(convidado)
+    } catch (error) {
+        res.status(400).json({ error: "erro ao criar convidado" })
+    }
 }
 
 
 
-export async function Listagem(req: Request, res: Response) {
+export async function Listagem(req: AuthRequest, res: Response) {
     try {
         const list = await prisma.convidados.findMany({
             select: {
                 id: true,
                 nome: true,
-                sobrenome: true
+                sobrenome: true,
+                email: true,
+                telefone: true,
+                status: true,
+                criadoPor: true
             }
         })
 
@@ -41,7 +49,7 @@ export async function Listagem(req: Request, res: Response) {
 
 
 
-export async function Busca(req: Request, res: Response) {
+export async function Busca(req: AuthRequest, res: Response) {
     const { id } = req.params
     if (!id) {
         res.status(400).json({ error: "ID do convidado não fornecido" })
@@ -49,10 +57,14 @@ export async function Busca(req: Request, res: Response) {
     }
 
     try {
-        const convidado = await prisma.convidados.findMany({
+        const convidado = await prisma.convidados.findUnique({
             where: { id: Number(id) }
         })
-        res.status(400).json(convidado)
+        if (!convidado) {
+            res.status(404).json({ error: "convidado não encontrado" })
+            return
+        }
+        res.status(200).json(convidado) // era 400 no caminho de sucesso
     } catch {
         res.status(400).json({ error: "convidado não encontrado" })
     }
@@ -60,37 +72,38 @@ export async function Busca(req: Request, res: Response) {
 
 
 
-export async function Editar(req: Request, res: Response) {
+export async function Editar(req: AuthRequest, res: Response) {
     const { id } = req.params
     if (!id) {
         res.status(400).json({ error: "insira todos os dados" })
         return
     }
 
-    const { nome, sobrenome, cpf, telefone, email} = req.body
+    const { nome, sobrenome, cpf, telefone, email } = req.body
 
     const convidado = await prisma.convidados.findFirst({
         where: { id: +id }
     })
     if (!convidado) {
-        res.status(400).json({ error: "convidado não encontrado" })
+        res.status(404).json({ error: "convidado não encontrado" })
         return
     }
 
-    try{
-    const editado = await prisma.convidados.update({
-        where: { id: +id },
-        data: { nome, sobrenome, cpf, telefone, email, }
-    })
-    res.status(200).json(editado)
+    try {
+        const editado = await prisma.convidados.update({
+            where: { id: +id },
+            data: { nome, sobrenome, cpf, telefone, email }
+        })
+        res.status(200).json(editado)
     } catch (error) {
-        res.status(400).json({ erro: "Erro ao atualizar"  });
+        res.status(400).json({ error: "Erro ao atualizar" })
     }
 }
 
 
 
-export async function MudarTipo(req: Request, res: Response) {
+// Rota de check-in (spec: PATCH /convidados/:id/checkin)
+export async function MudarTipo(req: AuthRequest, res: Response) {
     const { id } = req.params
     if (!id) {
         res.status(400).json({ error: "insira todos os dados" })
@@ -103,9 +116,10 @@ export async function MudarTipo(req: Request, res: Response) {
         return
     }
 
-    const user = await prisma.user.findUnique({ where: { id: Number(id) } })
-    if (!user) {
-        res.status(400).json({ error: "Usuario não encontrado" })
+    // BUG antigo: buscava em prisma.user em vez de prisma.convidados
+    const convidado = await prisma.convidados.findUnique({ where: { id: Number(id) } })
+    if (!convidado) {
+        res.status(404).json({ error: "Convidado não encontrado" })
         return
     }
 
@@ -116,13 +130,13 @@ export async function MudarTipo(req: Request, res: Response) {
         })
         res.status(200).json(editado)
     } catch (error) {
-        res.status(400).json({ erro: "Erro ao atualizar" });
+        res.status(400).json({ error: "Erro ao atualizar" })
     }
 }
 
 
 
-export async function Deletar(req: Request, res: Response) {
+export async function Deletar(req: AuthRequest, res: Response) {
     const { id } = req.params
     if (!id) {
         res.status(400).json({ error: "convidado não encontrado" })
@@ -130,12 +144,10 @@ export async function Deletar(req: Request, res: Response) {
     }
 
     const convidado = await prisma.convidados.findFirst({
-        where: {
-            id: +id
-        }
+        where: { id: +id }
     })
     if (!convidado) {
-        res.status(400).json({ error: "convidado não encontrado" })
+        res.status(404).json({ error: "convidado não encontrado" })
         return
     }
 
@@ -145,6 +157,6 @@ export async function Deletar(req: Request, res: Response) {
         })
         res.status(200).json({ message: `convidado deletado ${id}` })
     } catch {
-        res.status(400).json({ error: "erro ao deletar usuario" })
+        res.status(400).json({ error: "erro ao deletar convidado" })
     }
 }

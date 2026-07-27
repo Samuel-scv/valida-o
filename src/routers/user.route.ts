@@ -5,11 +5,14 @@ import { AdminMiddleware } from "../middlewares/authAdmin.middlewares.js"
 
 const router = Router()
 
-router.post("/register", registerUser)
+// POST /login (spec)
 router.post("/login", login)
-router.get("/users", Authmiddleware, Lista)
-router.get("/user/:id", Authmiddleware, Procurar)
-router.patch("/user/:id", Authmiddleware, AdminMiddleware, Modificar)
-router.delete("/user/:id", Authmiddleware, AdminMiddleware, Remover)
+
+// POST /usuarios -> só Admin pode cadastrar (recepcionistas ou outros admins)
+router.post("/usuarios", Authmiddleware, AdminMiddleware, registerUser)
+router.get("/usuarios", Authmiddleware, Lista)
+router.get("/usuarios/:id", Authmiddleware, Procurar)
+router.patch("/usuarios/:id", Authmiddleware, AdminMiddleware, Modificar)
+router.delete("/usuarios/:id", Authmiddleware, AdminMiddleware, Remover)
 
 export default router
